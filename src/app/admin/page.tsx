@@ -12775,6 +12775,8 @@ const SuwayomiConfigComponent = ({
   const [defaultLang, setDefaultLang] = useState('zh');
   const [sourceIds, setSourceIds] = useState('');
   const [maxSources, setMaxSources] = useState(10);
+  const [showMangaDisclaimer, setShowMangaDisclaimer] = useState(false);
+  const [mangaCountdown, setMangaCountdown] = useState(10);
 
   useEffect(() => {
     if (config?.SuwayomiConfig) {
@@ -12788,6 +12790,14 @@ const SuwayomiConfigComponent = ({
       setMaxSources(config.SuwayomiConfig.MaxSources || 10);
     }
   }, [config]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showMangaDisclaimer && mangaCountdown > 0) {
+      timer = setTimeout(() => setMangaCountdown(mangaCountdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [showMangaDisclaimer, mangaCountdown]);
 
   const buildConfig = () => ({
     Enabled: enabled,
@@ -12896,7 +12906,14 @@ const SuwayomiConfigComponent = ({
             </p>
           </div>
           <button
-            onClick={() => setEnabled(!enabled)}
+            onClick={() => {
+              if (!enabled) {
+                setShowMangaDisclaimer(true);
+                setMangaCountdown(10);
+              } else {
+                setEnabled(false);
+              }
+            }}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               enabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
             }`}
@@ -12908,6 +12925,62 @@ const SuwayomiConfigComponent = ({
             />
           </button>
         </div>
+
+        {/* 漫画展馆免责声明弹窗 */}
+        {showMangaDisclaimer &&
+          createPortal(
+            <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'>
+              <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-red-200 dark:border-red-800'>
+                <div className='p-6'>
+                  <div className='flex justify-center mb-4'>
+                    <AlertTriangle className='w-12 h-12 text-red-500' />
+                  </div>
+
+                  <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 text-center'>
+                    免责声明
+                  </h3>
+
+                  <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6'>
+                    <p className='text-sm text-gray-700 dark:text-gray-300 leading-relaxed'>
+                      本功能仅供个人学习和技术研究使用，请勿将其部署在公网环境中，更不得用于任何违法违规行为。
+                      使用本功能所产生的一切法律责任由使用者自行承担，与开发者无关。
+                      启用此功能即表示您已充分理解并同意承担相应风险。
+                    </p>
+                  </div>
+
+                  <div className='flex gap-3 justify-center'>
+                    <button
+                      onClick={() => {
+                        setShowMangaDisclaimer(false);
+                        setMangaCountdown(10);
+                      }}
+                      className={buttonStyles.secondary}
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEnabled(true);
+                        setShowMangaDisclaimer(false);
+                        setMangaCountdown(10);
+                      }}
+                      disabled={mangaCountdown > 0}
+                      className={
+                        mangaCountdown > 0
+                          ? buttonStyles.disabled
+                          : buttonStyles.danger
+                      }
+                    >
+                      {mangaCountdown > 0
+                        ? `确认 (${mangaCountdown}s)`
+                        : '确认启用'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
 
         <div>
           <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
@@ -13077,6 +13150,8 @@ const OPDSConfigComponent = ({
   const [legadoSubscriptions, setLegadoSubscriptions] = useState<
     NonNullable<AdminConfig['OPDSConfig']>['LegadoSubscriptions']
   >([]);
+  const [showBooksDisclaimer, setShowBooksDisclaimer] = useState(false);
+  const [booksCountdown, setBooksCountdown] = useState(10);
 
   useEffect(() => {
     if (!config?.OPDSConfig) return;
@@ -13102,6 +13177,14 @@ const OPDSConfigComponent = ({
     setLegadoSubscriptions(config.OPDSConfig.LegadoSubscriptions || []);
     setEditingIndex(null);
   }, [config]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showBooksDisclaimer && booksCountdown > 0) {
+      timer = setTimeout(() => setBooksCountdown(booksCountdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [showBooksDisclaimer, booksCountdown]);
 
   const updateSource = (index: number, patch: Partial<BookSource>) => {
     setSources((prev) =>
@@ -13326,7 +13409,14 @@ const OPDSConfigComponent = ({
           </p>
         </div>
         <button
-          onClick={() => setEnabled(!enabled)}
+          onClick={() => {
+            if (!enabled) {
+              setShowBooksDisclaimer(true);
+              setBooksCountdown(10);
+            } else {
+              setEnabled(false);
+            }
+          }}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             enabled ? 'bg-amber-600' : 'bg-gray-200 dark:bg-gray-700'
           }`}
@@ -13338,6 +13428,62 @@ const OPDSConfigComponent = ({
           />
         </button>
       </div>
+
+      {/* 电子书馆免责声明弹窗 */}
+      {showBooksDisclaimer &&
+        createPortal(
+          <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-red-200 dark:border-red-800'>
+              <div className='p-6'>
+                <div className='flex justify-center mb-4'>
+                  <AlertTriangle className='w-12 h-12 text-red-500' />
+                </div>
+
+                <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 text-center'>
+                  免责声明
+                </h3>
+
+                <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6'>
+                  <p className='text-sm text-gray-700 dark:text-gray-300 leading-relaxed'>
+                    本功能仅供个人学习和技术研究使用，请勿将其部署在公网环境中，更不得用于任何违法违规行为。
+                    使用本功能所产生的一切法律责任由使用者自行承担，与开发者无关。
+                    启用此功能即表示您已充分理解并同意承担相应风险。
+                  </p>
+                </div>
+
+                <div className='flex gap-3 justify-center'>
+                  <button
+                    onClick={() => {
+                      setShowBooksDisclaimer(false);
+                      setBooksCountdown(10);
+                    }}
+                    className={buttonStyles.secondary}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEnabled(true);
+                      setShowBooksDisclaimer(false);
+                      setBooksCountdown(10);
+                    }}
+                    disabled={booksCountdown > 0}
+                    className={
+                      booksCountdown > 0
+                        ? buttonStyles.disabled
+                        : buttonStyles.danger
+                    }
+                  >
+                    {booksCountdown > 0
+                      ? `确认 (${booksCountdown}s)`
+                      : '确认启用'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
       <div>
         <label className='mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -15503,6 +15649,8 @@ const MusicConfigComponent = ({
   const [baseUrl, setBaseUrl] = useState('');
   const [token, setToken] = useState('');
   const [proxyEnabled, setProxyEnabled] = useState(true);
+  const [showMusicDisclaimer, setShowMusicDisclaimer] = useState(false);
+  const [musicCountdown, setMusicCountdown] = useState(10);
 
   useEffect(() => {
     if (config?.MusicConfig) {
@@ -15512,6 +15660,14 @@ const MusicConfigComponent = ({
       setProxyEnabled(config.MusicConfig.ProxyEnabled ?? true);
     }
   }, [config]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showMusicDisclaimer && musicCountdown > 0) {
+      timer = setTimeout(() => setMusicCountdown(musicCountdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [showMusicDisclaimer, musicCountdown]);
 
   const handleSave = async () => {
     await withLoading('saveMusicConfig', async () => {
@@ -15606,12 +15762,75 @@ const MusicConfigComponent = ({
           <input
             type='checkbox'
             checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setShowMusicDisclaimer(true);
+                setMusicCountdown(10);
+              } else {
+                setEnabled(false);
+              }
+            }}
             className='sr-only peer'
           />
           <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
         </label>
       </div>
+
+      {/* 音乐免责声明弹窗 */}
+      {showMusicDisclaimer &&
+        createPortal(
+          <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-red-200 dark:border-red-800'>
+              <div className='p-6'>
+                <div className='flex justify-center mb-4'>
+                  <AlertTriangle className='w-12 h-12 text-red-500' />
+                </div>
+
+                <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 text-center'>
+                  免责声明
+                </h3>
+
+                <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6'>
+                  <p className='text-sm text-gray-700 dark:text-gray-300 leading-relaxed'>
+                    本功能仅供个人学习和技术研究使用，请勿将其部署在公网环境中，更不得用于任何违法违规行为。
+                    使用本功能所产生的一切法律责任由使用者自行承担，与开发者无关。
+                    启用此功能即表示您已充分理解并同意承担相应风险。
+                  </p>
+                </div>
+
+                <div className='flex gap-3 justify-center'>
+                  <button
+                    onClick={() => {
+                      setShowMusicDisclaimer(false);
+                      setMusicCountdown(10);
+                    }}
+                    className={buttonStyles.secondary}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEnabled(true);
+                      setShowMusicDisclaimer(false);
+                      setMusicCountdown(10);
+                    }}
+                    disabled={musicCountdown > 0}
+                    className={
+                      musicCountdown > 0
+                        ? buttonStyles.disabled
+                        : buttonStyles.danger
+                    }
+                  >
+                    {musicCountdown > 0
+                      ? `确认 (${musicCountdown}s)`
+                      : '确认启用'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
       <div className='space-y-4'>
         <div className='flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700'>
